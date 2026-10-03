@@ -8,7 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>Kas Dept. Press (v8)</title>
+    <title>Kas Dept. Press</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -226,10 +226,7 @@
         </div>
     </nav>
 
-    <!-- Script src dengan cache buster dinamis -->
-    <script>
-        document.write('<script src="config.js?v=' + new Date().getTime() + '"><\/script>');
-        document.write('<script src="app.js?v=' + new Date().getTime() + '"><\/script>');
-    </script>
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

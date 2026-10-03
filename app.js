@@ -1,17 +1,17 @@
-// 1. PWA Setup dgn Auto-Update
+// 1. PWA Setup dgn Auto-Update yang AMAN (Anti Infinite Loop)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=' + new Date().getTime()).then(reg => {
-            reg.addEventListener('updatefound', () => {
-                const newWorker = reg.installing;
-                newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // Jika ada service worker baru, auto-reload halaman!
-                        window.location.reload(true);
-                    }
-                });
-            });
-        });
+        // Cukup register biasa, karena strategi Fetch-nya di sw.js sudah Network-First
+        navigator.serviceWorker.register('sw.js');
+    });
+
+    // Event listener ini mendeteksi jika Vercel/GitHub punya update terbaru
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
     });
 }
 
@@ -30,8 +30,6 @@ const getCurrentMonth = () => {
 
 // Logika Keanggotaan Dinamis
 function isMemberActiveInMonth(member, monthStr) {
-    // Dihapus: Batasan created_at dihilangkan sepenuhnya agar anggota yang di-input belakangan (telat)
-    // tetap bisa muncul dan diceklis iurannya di bulan-bulan sebelumnya (seperti September).
     if (member.is_active === false && member.nonaktif_bulan && monthStr >= member.nonaktif_bulan) {
         return false; // Sudah dikeluarkan/berhenti sebelum atau pada bulan ini
     }

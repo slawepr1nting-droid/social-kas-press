@@ -1,7 +1,7 @@
-# Update v8: Final Polishing
+# Update v9: Infinite Loop Fix
 
-1. **Dashboard Update:** Widget Kas Masuk Lain diganti menjadi **Total Pengeluaran** sesuai bulan yang dipilih.
-2. **Perbaikan Tab Iuran:**
-   - Filter bulan otomatis berjalan (onchange) ketika bulan diubah.
-   - Pengecekan `created_at` dihilangkan, sehingga 2 anggota yang "hilang" di bulan September akan muncul kembali dan bisa diceklis.
-   - Penambahan tombol **Tambah Anggota Cepat** langsung di dalam Tab Iuran untuk mempercepat pendataan.
+Memperbaiki *bug* pada `app.js` v8 di mana aplikasi masuk ke mode *refresh/reload* tanpa henti akibat konflik antara sistem *cache-busting* dinamis (`?v=timestamp`) di dalam Service Worker. 
+
+**Solusi:**
+1. Menghapus teknik *cache-busting* timestamp yang menyebabkan browser mengira ada update setiap milidetik.
+2. Menggunakan metode Event Listener `controllerchange` murni yang aman dan hanya dieksekusi 1 kali saat update dari server benar-benar tersedia.
