@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kas Sosial Dept. Press</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50 pb-20 font-sans">
+    <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-10">
+        <h1 class="text-xl font-bold text-center"><i class="fa-solid fa-wallet mr-2"></i> Kas Dept. Press</h1>
+    </header>
+
+    <main class="p-4 max-w-md mx-auto">
+        <!-- Saldo Card -->
+        <div class="bg-white rounded-xl shadow-sm p-6 mb-6 text-center border-t-4 border-blue-500">
+            <h2 class="text-gray-500 text-sm font-semibold mb-2">Total Saldo Kas</h2>
+            <div class="text-4xl font-bold text-gray-800 tracking-tight" id="total-saldo">Rp 0</div>
+        </div>
+
+        <!-- Form Tambah -->
+        <div class="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <h3 class="font-bold text-gray-700 mb-4 border-b pb-2"><i class="fa-solid fa-plus-circle text-blue-500 mr-1"></i> Catat Transaksi</h3>
+            <form id="form-kas" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1 font-medium">Jenis Transaksi</label>
+                    <div class="flex gap-3">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="jenis" value="masuk" checked class="peer sr-only">
+                            <div class="text-center py-2 rounded-lg border-2 border-gray-200 text-gray-500 peer-checked:bg-green-50 peer-checked:border-green-500 peer-checked:text-green-700 font-medium transition-all">Pemasukan</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" name="jenis" value="keluar" class="peer sr-only">
+                            <div class="text-center py-2 rounded-lg border-2 border-gray-200 text-gray-500 peer-checked:bg-red-50 peer-checked:border-red-500 peer-checked:text-red-700 font-medium transition-all">Pengeluaran</div>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1 font-medium">Tanggal</label>
+                    <input type="date" id="tanggal" required class="w-full border-2 border-gray-200 rounded-lg p-2.5 focus:border-blue-500 focus:ring-0 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1 font-medium">Keterangan</label>
+                    <input type="text" id="keterangan" placeholder="Cth: Iuran bulanan Budi" required class="w-full border-2 border-gray-200 rounded-lg p-2.5 focus:border-blue-500 focus:ring-0 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1 font-medium">Nominal (Rp)</label>
+                    <input type="number" id="nominal" placeholder="50000" required class="w-full border-2 border-gray-200 rounded-lg p-2.5 focus:border-blue-500 focus:ring-0 outline-none transition-colors">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 active:scale-95 transition-all mt-4 shadow-md">
+                    Simpan Transaksi
+                </button>
+            </form>
+        </div>
+
+        <!-- Riwayat -->
+        <div>
+            <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-clock-rotate-left text-blue-500 mr-1"></i> Riwayat Transaksi</h3>
+            <div id="list-transaksi" class="space-y-3">
+                <div class="text-center text-gray-500 py-6 bg-white rounded-xl shadow-sm animate-pulse">Memuat data...</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
