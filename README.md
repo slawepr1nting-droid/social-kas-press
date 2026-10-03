@@ -1,5 +1,5 @@
-# Update v13: Compact Table & Custom Logo
+# Update v14: Share View Bug Fixes
 
 Fitur Terbaru:
-1. **Compact Shared Table:** Halaman `share.html` sekarang dirender dengan font dan padding yang lebih kecil. Awalan "Rp" pada tabel sengaja dihilangkan agar nominal lebih muat, dan kolom nama dibatasi ukurannya. 
-2. **Custom App Logo:** Logo aplikasi sudah diupdate sesuai dengan yang dilampirkan.
+1. **Fix Data Pengeluaran Kosong (Share View):** Mengganti klausa `.like` pada Supabase Client menjadi `.gte` dan `.lte` untuk memfilter tipe data `DATE` dengan benar. 
+2. **Compact View Table (Share View):** Data Keterangan & Nominal sekarang diatur lebih *compact*, menampilkan status (Pemasukan/Pengeluaran) di bawah keterangan secara elegan agar tidak memakan ruang horizontal di HP.
