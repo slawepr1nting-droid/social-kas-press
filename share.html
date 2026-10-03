@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Laporan Kas Dept. Press</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* CSS Untuk Freeze Kolom Pertama (Nama) & Baris Pertama (Bulan) */
+        .table-container {
+            overflow-x: auto;
+            overflow-y: auto;
+            max-height: 70vh;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            min-width: max-content;
+        }
+        th, td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            border-right: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+        
+        /* Freeze Header Baris (Bulan) */
+        thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f8fafc;
+            z-index: 10;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 600;
+        }
+        
+        /* Freeze Kolom Pertama (Nama Anggota) */
+        tbody th, thead th:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #f8fafc;
+            z-index: 11; /* Harus lebih tinggi dari tbody td biasa */
+            text-align: left;
+            border-right: 2px solid #cbd5e1;
+            font-weight: 600;
+        }
+        
+        /* Sudut Kiri Atas (Pertemuan Freeze Baris & Kolom) */
+        thead th:first-child {
+            z-index: 12; 
+        }
+
+        tbody tr:hover th, tbody tr:hover td {
+            background-color: #f1f5f9;
+        }
+        
+        .empty-cell { background-color: #fafafa; }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-book-open text-blue-600 mr-2"></i>Laporan Transparansi Iuran</h1>
+                    <p class="text-sm text-gray-500 mt-1">Rekap data iuran tahun <span id="share-year"></span></p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-semibold text-gray-600">Tahun:</label>
+                    <select id="select-year" class="border border-gray-300 rounded-lg p-2 outline-none focus:border-blue-500 bg-white" onchange="loadReport()"></select>
+                </div>
+            </div>
+
+            <!-- Tabel Data -->
+            <div class="table-container shadow-inner bg-white">
+                <table id="report-table">
+                    <thead>
+                        <tr id="table-header">
+                            <th>Nama Anggota</th>
+                            <!-- Kolom Jan-Des di-inject JS -->
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <tr><td colspan="13" class="text-center py-8 text-gray-400 animate-pulse">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="mt-4 flex gap-4 text-xs text-gray-500">
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-green-500 mr-1.5"></span> Lunas</div>
+                <div class="flex items-center"><span class="w-3 h-3 rounded-full border border-gray-300 mr-1.5"></span> Belum / Tidak Wajib</div>
+            </div>
+        </div>
+        
+        <!-- Summary Pengeluaran Tabel Bawah -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-money-bill-transfer text-blue-600 mr-2"></i>Rekap Pengeluaran & Pemasukan Lain</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b-2 border-gray-200">
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Keterangan</th>
+                            <th class="p-3">Jenis</th>
+                            <th class="p-3 text-right">Nominal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-kas-body" class="divide-y divide-gray-100">
+                        <!-- Data Kas -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="text-center mt-8 text-sm text-gray-400">
+            Dibuat menggunakan Aplikasi PWA Kas Dept. Press
+        </div>
+    </div>
+
+    <!-- Script src dengan cache buster dinamis -->
+    <script>
+        document.write('<script src="config.js?v=' + new Date().getTime() + '"><\/script>');
+    </script>
+    
+    <script>
+        const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+        const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        
+        // Inisialisasi Tahun
+        const currentYear = new Date().getFullYear();
+        const selectYearEl = document.getElementById('select-year');
+        for(let y = currentYear - 1; y <= currentYear + 1; y++) {
+            const opt = document.createElement('option');
+            opt.value = y;
+            opt.text = y;
+            if(y === currentYear) opt.selected = true;
+            selectYearEl.appendChild(opt);
+        }
+
+        async function loadReport() {
+            const year = document.getElementById('select-year').value;
+            document.getElementById('share-year').innerText = year;
+            
+            const tableHead = document.getElementById('table-header');
+            const tableBody = document.getElementById('table-body');
+            const tableKasBody = document.getElementById('table-kas-body');
+            
+            tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-400">Memuat data...</td></tr>';
+            
+            try {
+                // 1. Setup Header Kolom Bulan
+                const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                tableHead.innerHTML = '<th>Anggota</th>';
+                namaBulan.forEach(b => {
+                    tableHead.innerHTML += `<th class="text-center">${b}</th>`;
+                });
+
+                // 2. Fetch Data
+                const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
+                const { data: iuranData } = await supabaseClient.from('iuran_bulanan').select('*').like('bulan_tahun', `${year}-%`);
+                const { data: kasData } = await supabaseClient.from('kas_sosial').select('*').like('tanggal', `${year}-%`).order('tanggal', { ascending: false });
+
+                // 3. Mapping Iuran [karyawan_id][bulan_index (0-11)]
+                const iuranMap = {};
+                (iuranData || []).forEach(i => {
+                    const parts = i.bulan_tahun.split('-'); // 2026-09
+                    if(parts.length === 2 && parts[0] === year) {
+                        const mIndex = parseInt(parts[1]) - 1;
+                        if(!iuranMap[i.karyawan_id]) iuranMap[i.karyawan_id] = {};
+                        iuranMap[i.karyawan_id][mIndex] = i.nominal;
+                    }
+                });
+
+                // 4. Render Table Body (Iuran)
+                tableBody.innerHTML = '';
+                if(allMembers && allMembers.length > 0) {
+                    allMembers.forEach(m => {
+                        let rowHtml = `<tr><th>${m.nama}</th>`;
+                        
+                        for(let i=0; i<12; i++) {
+                            const hasPaid = iuranMap[m.id] && iuranMap[m.id][i];
+                            if(hasPaid) {
+                                rowHtml += `<td class="text-right text-blue-600 font-medium bg-blue-50/20">${iuranMap[m.id][i]}</td>`;
+                            } else {
+                                rowHtml += `<td class="empty-cell"></td>`;
+                            }
+                        }
+                        rowHtml += '</tr>';
+                        tableBody.innerHTML += rowHtml;
+                    });
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8">Tidak ada data anggota</td></tr>';
+                }
+
+                // 5. Render Table Kas (Pengeluaran & Masuk Lain)
+                tableKasBody.innerHTML = '';
+                if(kasData && kasData.length > 0) {
+                    kasData.forEach(k => {
+                        const isMasuk = k.jenis === 'masuk';
+                        const color = isMasuk ? 'text-green-600' : 'text-red-600';
+                        const sign = isMasuk ? '+' : '-';
+                        const badge = isMasuk 
+                            ? `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Pemasukan</span>`
+                            : `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">Pengeluaran</span>`;
+                            
+                        tableKasBody.innerHTML += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="p-3 text-gray-500">${k.tanggal}</td>
+                            <td class="p-3 font-medium text-gray-700">${k.keterangan}</td>
+                            <td class="p-3">${badge}</td>
+                            <td class="p-3 text-right font-bold ${color}">${sign} ${formatRp(k.nominal)}</td>
+                        </tr>`;
+                    });
+                } else {
+                    tableKasBody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">Tidak ada catatan pengeluaran/pemasukan di tahun ini.</td></tr>';
+                }
+
+            } catch (e) {
+                console.error(e);
+                tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
+            }
+        }
+
+        // Init
+        loadReport();
+    </script>
+</body>
+</html>
