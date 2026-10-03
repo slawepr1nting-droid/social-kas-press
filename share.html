@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- REVISI ZOOM: Hapus maximum-scale=1.0 dan user-scalable=no agar view Share bisa di-zoom -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Kas Dept. Press</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -39,7 +40,7 @@
             font-weight: 600;
         }
         
-        /* Freeze Kolom Pertama (Nama Anggota) */
+        /* Freeze Kolom Pertama (Nama Anggota & Tulisan Total) */
         tbody th, thead th:first-child {
             position: sticky;
             left: 0;
@@ -67,9 +68,12 @@
     <div class="max-w-6xl mx-auto">
         <div class="bg-white rounded-xl shadow-md p-6 mb-6">
             <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                <div>
-                    <h1 class="text-2xl font-bold text-gray-800"><i class="fa-solid fa-book-open text-blue-600 mr-2"></i>Laporan Transparansi Iuran</h1>
-                    <p class="text-sm text-gray-500 mt-1">Rekap data iuran tahun <span id="share-year"></span></p>
+                <div class="flex items-center gap-3">
+                    <img src="icon-192.png" alt="Logo" class="w-12 h-12 rounded-lg shadow-sm">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Laporan Transparansi Iuran</h1>
+                        <p class="text-sm text-gray-500 mt-1">Rekap data Kas Dept. Press tahun <span id="share-year"></span></p>
+                    </div>
                 </div>
                 
                 <div class="flex items-center gap-2">
@@ -124,7 +128,6 @@
         </div>
     </div>
 
-    <!-- Script src dengan cache buster dinamis -->
     <script>
         document.write('<script src="config.js?v=' + new Date().getTime() + '"><\/script>');
     </script>
@@ -180,6 +183,10 @@
 
                 // 4. Render Table Body (Iuran)
                 tableBody.innerHTML = '';
+                
+                // Tambahan: Array untuk menampung total per kolom/bulan
+                let colTotals = new Array(12).fill(0);
+
                 if(allMembers && allMembers.length > 0) {
                     allMembers.forEach(m => {
                         let rowHtml = `<tr><th>${m.nama}</th>`;
@@ -187,7 +194,9 @@
                         for(let i=0; i<12; i++) {
                             const hasPaid = iuranMap[m.id] && iuranMap[m.id][i];
                             if(hasPaid) {
-                                rowHtml += `<td class="text-right text-blue-600 font-medium bg-blue-50/20">${iuranMap[m.id][i]}</td>`;
+                                const nom = parseFloat(iuranMap[m.id][i]);
+                                rowHtml += `<td class="text-right text-blue-600 font-medium bg-blue-50/20">${formatRp(nom)}</td>`;
+                                colTotals[i] += nom; // Tambahkan ke total kolom
                             } else {
                                 rowHtml += `<td class="empty-cell"></td>`;
                             }
@@ -195,6 +204,19 @@
                         rowHtml += '</tr>';
                         tableBody.innerHTML += rowHtml;
                     });
+                    
+                    // REVISI: Tambahkan Baris TOTAL di Paling Bawah
+                    let totalRowHtml = `<tr class="bg-gray-100 border-t-[3px] border-gray-300"><th class="text-blue-800 font-extrabold uppercase bg-gray-200">TOTAL</th>`;
+                    for(let i=0; i<12; i++) {
+                        if(colTotals[i] > 0) {
+                            totalRowHtml += `<td class="text-right text-blue-800 font-bold bg-gray-100">${formatRp(colTotals[i])}</td>`;
+                        } else {
+                            totalRowHtml += `<td class="text-center text-gray-400 font-medium bg-gray-100">-</td>`;
+                        }
+                    }
+                    totalRowHtml += `</tr>`;
+                    tableBody.innerHTML += totalRowHtml;
+
                 } else {
                     tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8">Tidak ada data anggota</td></tr>';
                 }

@@ -39,12 +39,10 @@ function shareLink() {
     navigator.clipboard.writeText(shareUrl).then(() => {
         alert(`Link Laporan berhasil disalin!\n\nSilakan Paste dan kirim ke anggota:\n${shareUrl}`);
     }).catch(err => {
-        // Fallback jika tidak support clipboard API
         prompt("Copy link laporan ini:", shareUrl);
     });
 }
 
-// Menentukan apakah member tsb ikut iuran di bulan tertentu
 function isTargetMember(member, monthStr) {
     const customStatus = (window.customDataMap && window.customDataMap[monthStr]) ? window.customDataMap[monthStr][member.id] : null;
     if (customStatus === 'exclude') return false;
@@ -95,7 +93,6 @@ function switchTab(tabId) {
     if(tabId === 'anggota') loadAnggota();
 }
 
-// Globals untuk render rekap
 let globalIuranData = [];
 let globalAllMembers = [];
 
@@ -105,12 +102,10 @@ async function loadDashboard() {
         const selectedDashMonth = document.getElementById('dash-input-bulan').value;
         const [year, monthStrNum] = selectedDashMonth.split('-');
         
-        // Update Title Summary Bulan
         const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const mIdx = parseInt(monthStrNum) - 1;
         document.getElementById('title-summary').innerHTML = `<i class="fa-solid fa-chart-pie text-blue-500 mr-2"></i>Summary (${namaBulan[mIdx]} ${year})`;
 
-        // Ambil Data Utama
         const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
         const { data: iuranData } = await supabaseClient.from('iuran_bulanan').select('*');
         const { data: kasData } = await supabaseClient.from('kas_sosial').select('*');
@@ -142,7 +137,6 @@ async function loadDashboard() {
             }
         });
 
-        // ================= WIDGET ATAS =================
         const iuranBulanIniData = (iuranData || []).filter(i => i.bulan_tahun === selectedDashMonth);
         const iuranBulanIniTotal = iuranBulanIniData.reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
         
@@ -156,7 +150,6 @@ async function loadDashboard() {
         const lunasCount = dashboardPaidMembers.length;
         const belumLunasCount = dashboardUnpaidMembers.length;
         
-        // Update Kartu Total
         const totalMasukKeseluruhan = totalIuran + totalKasMasuk;
         const totalSaldo = totalMasukKeseluruhan - totalKasKeluar;
 
@@ -173,7 +166,6 @@ async function loadDashboard() {
         document.getElementById('count-belum').innerText = belumLunasCount;
         document.getElementById('count-lunas').innerText = lunasCount;
 
-        // Render rekap berdasarkan tahun yg dipilih di dropdown rekap
         renderRekapTahunan();
 
     } catch(e) {
@@ -190,7 +182,7 @@ function renderRekapTahunan() {
     rekapKananEl.innerHTML = '';
     
     const namaBulanSingkat = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    const realCurrentMonthStr = getCurrentMonth(); // ex: "2026-10"
+    const realCurrentMonthStr = getCurrentMonth();
 
     for (let m = 1; m <= 12; m++) {
         const blnString = String(m).padStart(2, '0');
@@ -250,27 +242,22 @@ function renderRekapTahunan() {
     }
 }
 
-// ================= FUNGSI MODAL DASHBOARD =================
+// ================= FUNGSI MODAL =================
 function showUnpaidModal() {
     const selectedDashMonth = document.getElementById('dash-input-bulan').value;
     document.getElementById('modal-subtitle').innerText = 'Bulan: ' + selectedDashMonth;
     switchModalTab('belum'); 
     document.getElementById('modal-belum-lunas').classList.remove('hidden');
 }
-
 function closeUnpaidModal() {
     document.getElementById('modal-belum-lunas').classList.add('hidden');
 }
-
 function showPengeluaranModal() {
     const selectedDashMonth = document.getElementById('dash-input-bulan').value;
     document.getElementById('modal-pengeluaran-subtitle').innerText = 'Bulan: ' + selectedDashMonth;
-    
     const listEl = document.getElementById('list-pengeluaran-content');
     listEl.innerHTML = '';
-    
     const dataBulanIni = (window.globalKasData || []).filter(k => k.jenis === 'keluar' && k.tanggal.startsWith(selectedDashMonth));
-    
     if(dataBulanIni.length === 0) {
         listEl.innerHTML = '<div class="text-center text-gray-500 py-8">Tidak ada pengeluaran bulan ini.</div>';
     } else {
@@ -287,7 +274,6 @@ function showPengeluaranModal() {
     }
     document.getElementById('modal-pengeluaran').classList.remove('hidden');
 }
-
 function closePengeluaranModal() {
     document.getElementById('modal-pengeluaran').classList.add('hidden');
 }
@@ -331,7 +317,6 @@ function switchModalTab(tabType) {
     }
 }
 
-// ================= FUNGSI ATUR PESERTA CUSTOM =================
 async function showAturPesertaModal() {
     const selectedMonth = document.getElementById('input-bulan-iuran').value;
     document.getElementById('modal-atur-peserta-subtitle').innerText = 'Bulan: ' + selectedMonth;
@@ -353,9 +338,7 @@ async function renderAturPesertaList() {
     listEl.innerHTML = '';
     
     allMembers.forEach(m => {
-        // Cek apakah dia target di bulan ini berdasar rule yg ada
         const isParticipating = isTargetMember(m, selectedMonth);
-        
         listEl.innerHTML += `
         <div class="bg-white p-3 rounded-lg shadow-sm flex justify-between items-center border border-gray-100">
             <div class="font-semibold text-gray-700 text-sm">${m.nama}</div>
@@ -375,16 +358,14 @@ async function togglePesertaCustom(karyawan_id, bulan_tahun, checkboxEl) {
     try {
         const { error } = await supabaseClient.from('peserta_iuran_custom').upsert([
             { bulan_tahun: bulan_tahun, karyawan_id: karyawan_id, status: newStatus }
-        ], { onConflict: 'bulan_tahun,karyawan_id' }); // harus onConflict string tanpa spasi jika pakai id gabungan
+        ], { onConflict: 'bulan_tahun,karyawan_id' }); 
         
         if(error) throw error;
         
         if(!window.customDataMap[bulan_tahun]) window.customDataMap[bulan_tahun] = {};
         window.customDataMap[bulan_tahun][karyawan_id] = newStatus;
         
-        // Memperbarui list belakang layar
         loadIuran();
-        
     } catch(e) {
         alert('Gagal update status peserta iuran bulan ini.');
         checkboxEl.checked = !isChecked;
@@ -406,7 +387,6 @@ async function loadIuran() {
 
         const { data: customData } = await supabaseClient.from('peserta_iuran_custom').select('*').eq('bulan_tahun', selectedMonth);
         
-        // Set Data Custom Lokal khusus list ini
         if(!window.customDataMap) window.customDataMap = {};
         window.customDataMap[selectedMonth] = {};
         (customData || []).forEach(c => {
@@ -419,7 +399,6 @@ async function loadIuran() {
         const sudahBayarMap = {};
         iuranBulanIni.forEach(i => { sudahBayarMap[i.karyawan_id] = i.id; });
 
-        // Filter Target: Hanya yg rule-nya = include ATAU (default aktif & bukan exclude) ATAU terlanjur bayar
         const targetMembers = (allMembers || []).filter(m => isTargetMember(m, selectedMonth) || sudahBayarMap[m.id]);
 
         window.lunasCountGlobal = 0;
@@ -496,7 +475,6 @@ async function loadAnggota() {
     const listEl = document.getElementById('list-anggota');
     listEl.innerHTML = '<div class="text-center py-4">Memuat...</div>';
     
-    // Tampilkan hanya yang masih aktif di list manajeman master
     const { data, error } = await supabaseClient.from('karyawan').select('*').eq('is_active', true).order('nama');
     listEl.innerHTML = '';
     
@@ -533,7 +511,6 @@ document.getElementById('form-anggota').addEventListener('submit', async (e) => 
 async function hapusAnggota(id) {
     if(!confirm('Keluarkan anggota ini dari master data? (Catatan: Riwayat iuran bulan lalu tetap aman)')) return;
     const currMonth = getCurrentMonth();
-    // Soft Delete di master
     await supabaseClient.from('karyawan').update({ is_active: false, nonaktif_bulan: currMonth }).eq('id', id);
     loadAnggota();
 }

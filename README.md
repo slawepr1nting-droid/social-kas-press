@@ -1,6 +1,6 @@
-# Update v11: Web Share & Table View
+# Update v12: Table Zoom & Custom Icon
 
 Fitur Terbaru:
-1. **Rekap Iuran Dashboard Berdasarkan Tahun:** Menambahkan dropdown pemilihan Tahun pada blok "Rekap Iuran Tahunan".
-2. **Dynamic Title Summary:** Tulisan "Summary" diubah menjadi dinamis mengikuti bulan yang dipilih (misal: "Summary (Oktober 2026)").
-3. **Halaman Publik Share:** Terdapat tombol Share di pojok kanan atas aplikasi. Tombol ini akan meng-_copy_ link `share.html`. Halaman tersebut berisi tabel rekap 12 bulan bergaya "Spreadsheet" dengan fitur Freeze pada Nama Anggota dan Bulan.
+1. **Zoom Diizinkan:** Halaman `share.html` sekarang bisa di-zoom in dan zoom out di HP untuk visibilitas tabel yang lebih baik.
+2. **Baris TOTAL:** Pada tabel share, ditambahkan baris TOTAL yang akan otomatis menghitung total uang yang terkumpul di setiap bulan/kolomnya.
+3. **Custom Icon:** Icon PWA di-*replace* menggunakan gambar logo khusus.
