@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kas-press-v4';
+const CACHE_NAME = 'kas-press-v5';
 const urlsToCache = ['./', './index.html', './app.js', './config.js'];
 
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(urlsToCache))));
