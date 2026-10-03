@@ -1,7 +1,7 @@
-# Update v9: Infinite Loop Fix
+# Update v10: Ultimate Customization
 
-Memperbaiki *bug* pada `app.js` v8 di mana aplikasi masuk ke mode *refresh/reload* tanpa henti akibat konflik antara sistem *cache-busting* dinamis (`?v=timestamp`) di dalam Service Worker. 
+Fitur Terbaru:
+1. **Modal Detail Pengeluaran:** Pada tab Home, klik Widget Pengeluaran (merah) untuk memunculkan modal daftar pengeluaran rinci di bulan tersebut.
+2. **Pengaturan Peserta Iuran Per Bulan:** Di Tab Iuran, tombol "Tambah Cepat" diubah menjadi **"Atur Peserta Iuran Bulan Ini"**. Fitur ini memunculkan modal yang memuat seluruh Master Karyawan. Anda bebas me-_toggle_ (ceklis) siapa saja yang Wajib / Tidak Wajib ikut iuran khusus di bulan tersebut, tanpa perlu merusak master data. 
 
-**Solusi:**
-1. Menghapus teknik *cache-busting* timestamp yang menyebabkan browser mengira ada update setiap milidetik.
-2. Menggunakan metode Event Listener `controllerchange` murni yang aman dan hanya dieksekusi 1 kali saat update dari server benar-benar tersedia.
+*(Dibutuhkan eksekusi Query SQL tambahan untuk membuat tabel `peserta_iuran_custom`)*.
