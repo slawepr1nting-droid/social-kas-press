@@ -7,6 +7,10 @@ if ('serviceWorker' in navigator) {
 const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 const NOMINAL_IURAN = 20000;
 
+// Variabel Global untuk Modal Dashboard
+let dashboardUnpaidMembers = [];
+let dashboardPaidMembers = [];
+
 // Utilities
 const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 const getCurrentMonth = () => {
@@ -67,12 +71,22 @@ async function loadDashboard() {
             if(k.jenis === 'masuk' && k.tanggal.startsWith(currentMonth)) kasMasukBulanIni += nom;
         });
 
-        // Get Iuran specific for this month
-        const { data: iuranBulanIniData } = await supabaseClient.select('nominal').from('iuran_bulanan').eq('bulan_tahun', currentMonth);
-        iuranBulanIni = (iuranBulanIniData || []).reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
+        // ------------------ LOGIC STATUS LUNAS / BELUM ------------------
+        // 1. Ambil seluruh anggota
+        const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
+        // 2. Ambil data iuran khusus bulan ini
+        const { data: iuranBulanIniData } = await supabaseClient.from('iuran_bulanan').select('karyawan_id, nominal').eq('bulan_tahun', currentMonth);
         
-        // Get total members for progress
-        const { count: totalAnggota } = await supabaseClient.from('karyawan').select('*', { count: 'exact', head: true });
+        // 3. Pisahkan anggota yang lunas dan belum
+        iuranBulanIni = (iuranBulanIniData || []).reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
+        const paidMemberIds = new Set((iuranBulanIniData || []).map(i => i.karyawan_id));
+        
+        dashboardPaidMembers = (allMembers || []).filter(m => paidMemberIds.has(m.id));
+        dashboardUnpaidMembers = (allMembers || []).filter(m => !paidMemberIds.has(m.id));
+        
+        const lunasCount = dashboardPaidMembers.length;
+        const belumLunasCount = dashboardUnpaidMembers.length;
+        // -----------------------------------------------------------------
         
         const totalMasukKeseluruhan = totalIuran + totalKasMasuk;
         const totalSaldo = totalMasukKeseluruhan - totalKasKeluar;
@@ -84,10 +98,69 @@ async function loadDashboard() {
         document.getElementById('dash-month-name').innerText = currentMonth;
         document.getElementById('dash-iuran-terkumpul').innerText = formatRp(iuranBulanIni);
         document.getElementById('dash-kas-masuk').innerText = formatRp(kasMasukBulanIni);
-        document.getElementById('dash-iuran-progress').innerText = `${iuranBulanIniData ? iuranBulanIniData.length : 0} / ${totalAnggota || 0} Anggota`;
+        
+        // Update widget detail status
+        document.getElementById('dash-lunas-count').innerText = `${lunasCount} Lunas`;
+        document.getElementById('dash-belum-lunas-count').innerText = `${belumLunasCount} Belum`;
+        
+        // Update Modal Counter
+        document.getElementById('count-belum').innerText = belumLunasCount;
+        document.getElementById('count-lunas').innerText = lunasCount;
 
     } catch(e) {
         console.error(e);
+    }
+}
+
+// ================= FUNGSI MODAL STATUS =================
+function showUnpaidModal() {
+    document.getElementById('modal-subtitle').innerText = 'Bulan: ' + getCurrentMonth();
+    switchModalTab('belum'); // Default tab "Belum Lunas"
+    document.getElementById('modal-belum-lunas').classList.remove('hidden');
+}
+
+function closeUnpaidModal() {
+    document.getElementById('modal-belum-lunas').classList.add('hidden');
+}
+
+function switchModalTab(tabType) {
+    const btnBelum = document.getElementById('tab-belum');
+    const btnLunas = document.getElementById('tab-lunas');
+    const listEl = document.getElementById('list-modal-content');
+    listEl.innerHTML = '';
+
+    if (tabType === 'belum') {
+        // Styling Tab Aktif
+        btnBelum.className = "flex-1 py-3 text-red-600 border-b-2 border-red-600 text-center transition-colors";
+        btnLunas.className = "flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors";
+        
+        if (dashboardUnpaidMembers.length === 0) {
+            listEl.innerHTML = '<div class="text-center text-gray-500 py-8"><i class="fa-solid fa-face-laugh-beam text-4xl text-green-400 mb-3 block"></i>Hebat! Semua anggota sudah lunas bulan ini.</div>';
+        } else {
+            dashboardUnpaidMembers.forEach((m, i) => {
+                listEl.innerHTML += `
+                <div class="bg-white p-3 rounded-lg shadow-sm mb-2 flex items-center gap-3 border-l-4 border-red-400">
+                    <div class="w-8 h-8 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-bold text-xs">${i + 1}</div>
+                    <div class="font-semibold text-gray-700">${m.nama}</div>
+                </div>`;
+            });
+        }
+    } else {
+        // Styling Tab Aktif
+        btnLunas.className = "flex-1 py-3 text-green-600 border-b-2 border-green-600 text-center transition-colors";
+        btnBelum.className = "flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors";
+
+        if (dashboardPaidMembers.length === 0) {
+            listEl.innerHTML = '<div class="text-center text-gray-500 py-8"><i class="fa-solid fa-face-frown-open text-4xl text-gray-300 mb-3 block"></i>Belum ada yang lunas bulan ini.</div>';
+        } else {
+            dashboardPaidMembers.forEach((m, i) => {
+                listEl.innerHTML += `
+                <div class="bg-white p-3 rounded-lg shadow-sm mb-2 flex items-center gap-3 border-l-4 border-green-400">
+                    <div class="w-8 h-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center font-bold text-xs">${i + 1}</div>
+                    <div class="font-semibold text-gray-700">${m.nama}</div>
+                </div>`;
+            });
+        }
     }
 }
 
@@ -98,15 +171,12 @@ async function loadIuran() {
     listEl.innerHTML = '<div class="text-center py-4"><i class="fa-solid fa-spinner fa-spin text-blue-500"></i> Memuat...</div>';
 
     try {
-        // Ambil data karyawan
         const { data: karyawan, error: errKar } = await supabaseClient.from('karyawan').select('*').order('nama');
         if (errKar) throw errKar;
 
-        // Ambil data iuran di bulan terpilih
         const { data: iuranBulanIni, error: errIuran } = await supabaseClient.from('iuran_bulanan').select('*').eq('bulan_tahun', selectedMonth);
         if (errIuran) throw errIuran;
 
-        // Buat map (set) id karyawan yang sudah bayar
         const sudahBayarMap = {};
         iuranBulanIni.forEach(i => { sudahBayarMap[i.karyawan_id] = i.id; });
 
@@ -152,7 +222,7 @@ async function loadIuran() {
 
 async function toggleIuran(karyawan_id, bulan_tahun, checkboxEl) {
     const isChecked = checkboxEl.checked;
-    checkboxEl.disabled = true; // prevent double click
+    checkboxEl.disabled = true; 
     
     try {
         if(isChecked) {
@@ -160,11 +230,10 @@ async function toggleIuran(karyawan_id, bulan_tahun, checkboxEl) {
         } else {
             await supabaseClient.from('iuran_bulanan').delete().match({ karyawan_id, bulan_tahun });
         }
-        // Update counter silently
-        loadIuran(); // Reload view
+        loadIuran(); 
     } catch(e) {
         alert('Gagal update status iuran');
-        checkboxEl.checked = !isChecked; // revert
+        checkboxEl.checked = !isChecked;
     } finally {
         checkboxEl.disabled = false;
     }

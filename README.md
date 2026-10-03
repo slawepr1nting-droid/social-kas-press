@@ -1,16 +1,11 @@
-# Update v2: Iuran Bulanan Karyawan
+# Update v3: Interactive Dashboard & Config Updated
 
 Aplikasi kini mendukung:
-1. **Dashboard** (Summary Total Kas & Iuran)
-2. **Iuran (Ceklis)** - Rp 20.000 / bulan dengan filter per-bulan
-3. **Kas Bebas** - Pemasukan/Pengeluaran lainnya
-4. **Data Anggota** - Tambah/Hapus karyawan
+1. **Interactive Dashboard:** Widget "Iuran Terkumpul" sekarang bisa diklik.
+2. **Modal Status Iuran:** Menampilkan *Pop-up* siapa saja karyawan yang **Sudah Lunas** dan yang **Belum Lunas** pada bulan berjalan.
+3. Config Supabase telah di-_inject_ langsung sesuai *request*.
 
-## Panduan Update Database Supabase
-Karena ada penambahan fitur Karyawan dan Iuran, Anda **WAJIB** menjalankan ulang script database:
-1. Buka Supabase -> **SQL Editor**
-2. Copy isi file `database.sql` dan **Run**.
-3. (Tabel `kas_sosial` yang lama tidak akan terhapus, aman).
-
-Konfigurasi di `config.js` sudah disesuaikan dengan URL dan Key yang Anda berikan.
-Tinggal upload seluruh folder ini ke GitHub dan biarkan Vercel deploy otomatis.
+## Cara Deploy
+1. Timpa/Upload semua file di dalam folder ini ke GitHub Anda.
+2. Vercel akan otomatis me-_rebuild_.
+3. Lakukan **Refresh** / *Clear Cache* di browser atau aplikasi PWA HP Anda.
