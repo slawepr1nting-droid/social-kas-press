@@ -11,7 +11,7 @@
         .table-container {
             overflow-x: auto;
             overflow-y: auto;
-            max-height: 70vh;
+            max-height: 75vh;
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
         }
@@ -55,7 +55,6 @@
         tbody tr:hover th, tbody tr:hover td { background-color: #f1f5f9; }
         .empty-cell { background-color: #fafafa; }
         
-        /* Hide scrollbar for year buttons */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -64,29 +63,25 @@
 
     <div class="max-w-6xl mx-auto">
         <!-- HEADER -->
-        <div class="flex flex-col items-center mb-6 mt-4 gap-3">
-            <img src="icon-192.png" alt="Logo" class="w-16 h-16 rounded-2xl shadow-sm">
-            <div class="text-center">
-                <h1 class="text-xl md:text-2xl font-bold text-gray-800">Laporan Transparansi</h1>
-                <p class="text-xs text-gray-500 mt-1">Kas Dept. Press</p>
+        <div class="bg-blue-600 rounded-2xl shadow-lg p-6 mb-6 text-center text-white relative overflow-hidden">
+            <div class="absolute -right-4 -top-4 opacity-10 text-7xl"><i class="fa-solid fa-coins"></i></div>
+            <h2 class="text-blue-100 text-sm font-semibold mb-1">Total Saldo Kas Keseluruhan</h2>
+            <div class="text-4xl font-bold tracking-tight mb-4" id="share-total-saldo">Rp 0</div>
+            
+            <div class="grid grid-cols-2 gap-4 border-t border-blue-500 pt-4 mt-2 cursor-pointer">
+                <div class="hover:bg-blue-700/50 rounded-lg p-2 transition-colors" onclick="showPemasukanModal()">
+                    <div class="text-[10px] text-blue-200 font-bold uppercase mb-1">Total Pemasukan <i class="fa-solid fa-circle-info ml-1"></i></div>
+                    <div class="font-bold text-sm md:text-lg" id="share-total-masuk">Rp 0</div>
+                </div>
+                <div class="hover:bg-blue-700/50 rounded-lg p-2 transition-colors" onclick="showPengeluaranModal()">
+                    <div class="text-[10px] text-red-300 font-bold uppercase mb-1">Total Pengeluaran <i class="fa-solid fa-circle-info ml-1"></i></div>
+                    <div class="font-bold text-sm md:text-lg text-red-200" id="share-total-keluar">Rp 0</div>
+                </div>
             </div>
         </div>
 
-        <!-- REVISI: YEAR SELECTOR BUTTONS -->
         <div class="flex justify-center gap-2 mb-6 overflow-x-auto no-scrollbar py-1 px-4" id="year-buttons">
             <!-- Injected via JS -->
-        </div>
-
-        <!-- REVISI: SUMMARY CARDS -->
-        <div class="grid grid-cols-2 gap-3 mb-6 px-2">
-            <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center shadow-sm">
-                <div class="text-[10px] text-green-600 font-bold uppercase mb-1"><i class="fa-solid fa-arrow-trend-up mr-1"></i>Total Pemasukan</div>
-                <div class="text-sm md:text-lg font-bold text-green-700" id="share-total-pemasukan">Rp 0</div>
-            </div>
-            <div class="bg-red-50 border border-red-200 rounded-xl p-3 text-center shadow-sm">
-                <div class="text-[10px] text-red-600 font-bold uppercase mb-1"><i class="fa-solid fa-arrow-trend-down mr-1"></i>Total Pengeluaran</div>
-                <div class="text-sm md:text-lg font-bold text-red-700" id="share-total-pengeluaran">Rp 0</div>
-            </div>
         </div>
 
         <div class="bg-white rounded-xl shadow-md p-4 md:p-6 mb-6">
@@ -96,6 +91,7 @@
                     <thead>
                         <tr id="table-header">
                             <th>Anggota</th>
+                            <!-- Kolom Jan-Des -->
                         </tr>
                     </thead>
                     <tbody id="table-body">
@@ -110,16 +106,40 @@
             </div>
         </div>
         
-        <!-- REVISI: PENGELUARAN LIST -->
-        <div class="bg-white rounded-xl shadow-md p-4 md:p-6">
-            <h2 class="text-md font-bold text-gray-800 mb-4"><i class="fa-solid fa-money-bill-transfer text-blue-600 mr-2"></i>Riwayat Kas Lainnya</h2>
-            <div id="list-kas-body">
-                <div class="text-center py-4 text-gray-400 animate-pulse text-xs">Memuat data...</div>
-            </div>
-        </div>
-        
         <div class="text-center mt-6 mb-4 text-xs text-gray-400">
             Dibuat dengan Aplikasi PWA Kas Dept. Press
+        </div>
+    </div>
+
+    <!-- Modal Pemasukan -->
+    <div id="modal-pemasukan" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 fade-in backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-green-50 p-4 border-b border-green-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-green-700"><i class="fa-solid fa-arrow-trend-up mr-2"></i>Rincian Pemasukan</h3>
+                    <div class="text-xs text-green-500 mt-1">Total Keseluruhan</div>
+                </div>
+                <button onclick="closeModal('modal-pemasukan')" class="w-8 h-8 flex items-center justify-center rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto bg-gray-50 space-y-3" id="list-pemasukan-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal Pengeluaran -->
+    <div id="modal-pengeluaran" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 fade-in backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-red-700"><i class="fa-solid fa-arrow-trend-down mr-2"></i>Rincian Pengeluaran</h3>
+                    <div class="text-xs text-red-500 mt-1">Total Keseluruhan</div>
+                </div>
+                <button onclick="closeModal('modal-pengeluaran')" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="p-4 overflow-y-auto bg-gray-50 space-y-3" id="list-pengeluaran-content"></div>
         </div>
     </div>
 
@@ -134,6 +154,10 @@
         
         const currentYearObj = new Date().getFullYear();
         let selectedYear = currentYearObj;
+        
+        let globalIuranBulananData = [];
+        let globalKasMasukLainData = [];
+        let globalKasKeluarData = [];
 
         function renderYearButtons() {
             const container = document.getElementById('year-buttons');
@@ -154,57 +178,147 @@
             loadReport();
         }
 
+        function showPemasukanModal() {
+            const listEl = document.getElementById('list-pemasukan-content');
+            listEl.innerHTML = '';
+
+            // Render Iuran Summary
+            if (globalIuranBulananData.length > 0) {
+                listEl.innerHTML += `<div class="font-bold text-gray-700 text-xs border-b pb-1 mb-2">IURAN ANGGOTA</div>`;
+                globalIuranBulananData.forEach(i => {
+                    listEl.innerHTML += `
+                    <div class="bg-white p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center border-l-4 border-green-400">
+                        <div>
+                            <div class="font-bold text-gray-700 text-sm">Iuran ${i.bulan}</div>
+                        </div>
+                        <div class="font-bold text-green-600 text-sm">+ ${formatRp(i.total)}</div>
+                    </div>`;
+                });
+            }
+
+            // Render Pemasukan Lain
+            if (globalKasMasukLainData.length > 0) {
+                listEl.innerHTML += `<div class="font-bold text-gray-700 text-xs border-b pb-1 mb-2 mt-4">PEMASUKAN LAINNYA</div>`;
+                globalKasMasukLainData.forEach(k => {
+                    listEl.innerHTML += `
+                    <div class="bg-white p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center border-l-4 border-green-400">
+                        <div>
+                            <div class="font-bold text-gray-700 text-sm">${k.keterangan}</div>
+                            <div class="text-[10px] text-gray-500">${k.tanggal}</div>
+                        </div>
+                        <div class="font-bold text-green-600 text-sm">+ ${formatRp(k.nominal)}</div>
+                    </div>`;
+                });
+            }
+
+            if(globalIuranBulananData.length === 0 && globalKasMasukLainData.length === 0) {
+                listEl.innerHTML = '<div class="text-center text-gray-500 py-8 text-xs">Belum ada pemasukan.</div>';
+            }
+
+            document.getElementById('modal-pemasukan').classList.remove('hidden');
+        }
+
+        function showPengeluaranModal() {
+            const listEl = document.getElementById('list-pengeluaran-content');
+            listEl.innerHTML = '';
+
+            if (globalKasKeluarData.length > 0) {
+                globalKasKeluarData.forEach(k => {
+                    listEl.innerHTML += `
+                    <div class="bg-white p-3 rounded-lg shadow-sm mb-2 flex justify-between items-center border-l-4 border-red-400">
+                        <div>
+                            <div class="font-bold text-gray-700 text-sm">${k.keterangan}</div>
+                            <div class="text-[10px] text-gray-500">${k.tanggal}</div>
+                        </div>
+                        <div class="font-bold text-red-600 text-sm">- ${formatRp(k.nominal)}</div>
+                    </div>`;
+                });
+            } else {
+                listEl.innerHTML = '<div class="text-center text-gray-500 py-8 text-xs">Belum ada pengeluaran.</div>';
+            }
+
+            document.getElementById('modal-pengeluaran').classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
         async function loadReport() {
             const tableHead = document.getElementById('table-header');
             const tableBody = document.getElementById('table-body');
-            const listKasBody = document.getElementById('list-kas-body');
             
             tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-gray-400">Memuat data...</td></tr>';
-            listKasBody.innerHTML = '<div class="text-center py-4 text-gray-400 text-xs">Memuat data...</div>';
             
             try {
                 const namaBulan = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+                const namaBulanFull = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
                 tableHead.innerHTML = '<th>Anggota</th>';
                 namaBulan.forEach(b => {
                     tableHead.innerHTML += `<th class="text-center bg-gray-50 text-gray-600">${b}</th>`;
                 });
 
-                const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
-                const { data: iuranData } = await supabaseClient.from('iuran_bulanan').select('*').like('bulan_tahun', `${selectedYear}-%`);
-                const { data: kasData } = await supabaseClient.from('kas_sosial')
-                    .select('*')
-                    .gte('tanggal', `${selectedYear}-01-01`)
-                    .lte('tanggal', `${selectedYear}-12-31`)
-                    .order('tanggal', { ascending: false });
+                // Load Data ALL TIME untuk header atas
+                const { data: allIuranData } = await supabaseClient.from('iuran_bulanan').select('*');
+                const { data: allKasData } = await supabaseClient.from('kas_sosial').select('*').order('tanggal', { ascending: false });
 
-                // HITUNG TOTAL SUMMARY
-                let totalIuran = 0;
-                let totalPemasukanLain = 0;
-                let totalPengeluaran = 0;
-
-                const iuranMap = {};
-                (iuranData || []).forEach(i => {
+                // Hitung Saldo Keseluruhan
+                let grandTotalIuran = 0;
+                globalIuranBulananData = []; // Reset
+                
+                // Kelompokkan Iuran Bulanan untuk Modal
+                const iuranGrup = {};
+                (allIuranData || []).forEach(i => {
                     const nom = parseFloat(i.nominal);
-                    totalIuran += nom;
+                    grandTotalIuran += nom;
                     
-                    const parts = i.bulan_tahun.split('-');
-                    if(parts.length === 2 && parts[0] == selectedYear) {
-                        const mIndex = parseInt(parts[1]) - 1;
-                        if(!iuranMap[i.karyawan_id]) iuranMap[i.karyawan_id] = {};
-                        iuranMap[i.karyawan_id][mIndex] = nom;
+                    const [y, m] = i.bulan_tahun.split('-');
+                    const namaBln = `${namaBulanFull[parseInt(m)-1]} ${y}`;
+                    if(!iuranGrup[i.bulan_tahun]) iuranGrup[i.bulan_tahun] = { bulan: namaBln, total: 0, sortKey: i.bulan_tahun };
+                    iuranGrup[i.bulan_tahun].total += nom;
+                });
+                
+                globalIuranBulananData = Object.values(iuranGrup).sort((a,b) => b.sortKey.localeCompare(a.sortKey));
+
+                let grandTotalKasMasuk = 0;
+                let grandTotalKasKeluar = 0;
+                globalKasMasukLainData = [];
+                globalKasKeluarData = [];
+
+                (allKasData || []).forEach(k => {
+                    const nom = parseFloat(k.nominal);
+                    if(k.jenis === 'masuk') {
+                        grandTotalKasMasuk += nom;
+                        globalKasMasukLainData.push(k);
+                    } else {
+                        grandTotalKasKeluar += nom;
+                        globalKasKeluarData.push(k);
                     }
                 });
 
-                (kasData || []).forEach(k => {
-                    const nom = parseFloat(k.nominal);
-                    if(k.jenis === 'masuk') totalPemasukanLain += nom;
-                    else totalPengeluaran += nom;
+                const finalTotalPemasukan = grandTotalIuran + grandTotalKasMasuk;
+                const finalSaldo = finalTotalPemasukan - grandTotalKasKeluar;
+
+                document.getElementById('share-total-saldo').innerText = formatRp(finalSaldo);
+                document.getElementById('share-total-masuk').innerText = formatRp(finalTotalPemasukan);
+                document.getElementById('share-total-keluar').innerText = formatRp(grandTotalKasKeluar);
+
+
+                // LOAD DATA TABEL (Sesuai Tahun Terpilih)
+                const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
+                const iuranTahunIni = (allIuranData || []).filter(i => i.bulan_tahun.startsWith(selectedYear));
+
+                const iuranMap = {};
+                iuranTahunIni.forEach(i => {
+                    const parts = i.bulan_tahun.split('-');
+                    if(parts.length === 2) {
+                        const mIndex = parseInt(parts[1]) - 1;
+                        if(!iuranMap[i.karyawan_id]) iuranMap[i.karyawan_id] = {};
+                        iuranMap[i.karyawan_id][mIndex] = i.nominal;
+                    }
                 });
 
-                document.getElementById('share-total-pemasukan').innerText = formatRp(totalIuran + totalPemasukanLain);
-                document.getElementById('share-total-pengeluaran').innerText = formatRp(totalPengeluaran);
-
-                // TABEL IURAN
                 tableBody.innerHTML = '';
                 let colTotals = new Array(12).fill(0);
 
@@ -241,44 +355,12 @@
                     tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8">Tidak ada data anggota</td></tr>';
                 }
 
-                // REVISI LIST PENGELUARAN (Bukan Tabel agar nominal tidak terpotong)
-                listKasBody.innerHTML = '';
-                if(kasData && kasData.length > 0) {
-                    kasData.forEach(k => {
-                        const isMasuk = k.jenis === 'masuk';
-                        const color = isMasuk ? 'text-green-600' : 'text-red-600';
-                        const sign = isMasuk ? '+' : '-';
-                        const borderColor = isMasuk ? 'border-green-400' : 'border-red-400';
-                        const bgIcon = isMasuk ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600';
-                        const icon = isMasuk ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
-                            
-                        listKasBody.innerHTML += `
-                        <div class="bg-gray-50 p-3 rounded-lg flex justify-between items-center border-l-4 ${borderColor} mb-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full ${bgIcon} flex items-center justify-center text-xs shadow-sm shrink-0">
-                                    <i class="fa-solid ${icon}"></i>
-                                </div>
-                                <div>
-                                    <div class="font-bold text-gray-700 text-xs md:text-sm leading-tight">${k.keterangan}</div>
-                                    <div class="text-[10px] text-gray-500 mt-0.5">${k.tanggal}</div>
-                                </div>
-                            </div>
-                            <div class="font-bold ${color} text-xs md:text-sm whitespace-nowrap ml-2">
-                                ${sign} ${formatRp(k.nominal)}
-                            </div>
-                        </div>`;
-                    });
-                } else {
-                    listKasBody.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">Tidak ada catatan transaksi di tahun ini.</div>';
-                }
-
             } catch (e) {
                 console.error(e);
                 tableBody.innerHTML = '<tr><td colspan="13" class="text-center py-8 text-red-500">Gagal memuat data</td></tr>';
             }
         }
 
-        // Init
         renderYearButtons();
         loadReport();
     </script>

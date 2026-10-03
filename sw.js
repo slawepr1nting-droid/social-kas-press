@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kas-press-v15-stable';
+const CACHE_NAME = 'kas-press-v16-stable';
 
 self.addEventListener('install', event => {
     self.skipWaiting(); 

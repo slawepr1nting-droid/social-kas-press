@@ -1,6 +1,5 @@
-# Update v15: Share View UI Update
+# Update v16: Share View Popups & Dashboard Match
 
 Fitur Terbaru:
-1. **Share View Total Summary:** Menambahkan card "Total Pemasukan" dan "Total Pengeluaran" di bagian atas halaman `share.html`.
-2. **Year Selector Buttons:** Mengubah dropdown tahun di `share.html` menjadi tombol (*buttons*) yang lebih modern.
-3. **Kas Transaction List:** Mengganti tabel riwayat kas di bagian bawah `share.html` dengan tampilan *list card* yang sama dengan *dashboard* utama. Hal ini menyelesaikan masalah kolom nominal yang sering terpotong/hilang karena keterbatasan lebar layar HP pada format tabel biasa.
+1. **Header Dashboard-Style di Share View:** Halaman `share.html` sekarang memuat *Total Saldo Kas Keseluruhan*, *Total Pemasukan*, dan *Total Pengeluaran* dengan desain kartu biru yang persis sama seperti di halaman Home aplikasi.
+2. **Modal Pemasukan & Pengeluaran:** Di halaman `share.html`, Anda dapat mengklik kotak "Total Pemasukan" atau "Total Pengeluaran". Ini akan membuka *pop-up* (modal) dari bawah yang berisi daftar lengkap sumber pemasukan (Iuran & Pemasukan Lain) serta daftar riwayat pengeluaran.
