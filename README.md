@@ -1,5 +1,6 @@
-# Update v14: Share View Bug Fixes
+# Update v15: Share View UI Update
 
 Fitur Terbaru:
-1. **Fix Data Pengeluaran Kosong (Share View):** Mengganti klausa `.like` pada Supabase Client menjadi `.gte` dan `.lte` untuk memfilter tipe data `DATE` dengan benar. 
-2. **Compact View Table (Share View):** Data Keterangan & Nominal sekarang diatur lebih *compact*, menampilkan status (Pemasukan/Pengeluaran) di bawah keterangan secara elegan agar tidak memakan ruang horizontal di HP.
+1. **Share View Total Summary:** Menambahkan card "Total Pemasukan" dan "Total Pengeluaran" di bagian atas halaman `share.html`.
+2. **Year Selector Buttons:** Mengubah dropdown tahun di `share.html` menjadi tombol (*buttons*) yang lebih modern.
+3. **Kas Transaction List:** Mengganti tabel riwayat kas di bagian bawah `share.html` dengan tampilan *list card* yang sama dengan *dashboard* utama. Hal ini menyelesaikan masalah kolom nominal yang sering terpotong/hilang karena keterbatasan lebar layar HP pada format tabel biasa.
