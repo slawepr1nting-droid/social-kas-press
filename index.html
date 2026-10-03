@@ -8,7 +8,7 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     
-    <title>Kas Dept. Press</title>
+    <title>Kas Dept. Press (v13)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -25,7 +25,6 @@
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans pb-20">
 
-    <!-- Header -->
     <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
         <h1 class="text-xl font-bold"><i class="fa-solid fa-wallet mr-2"></i> Kas Dept. Press</h1>
         <button onclick="shareLink()" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg text-sm font-semibold transition">
@@ -35,7 +34,6 @@
 
     <main class="p-4 max-w-md mx-auto fade-in">
         
-        <!-- ================= VIEW: DASHBOARD ================= -->
         <div id="view-dashboard" class="view-section">
             <div class="bg-blue-600 rounded-2xl shadow-lg p-6 mb-6 text-center text-white relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 opacity-10 text-7xl"><i class="fa-solid fa-coins"></i></div>
@@ -54,7 +52,6 @@
                 </div>
             </div>
 
-            <!-- Header Summary dgn Filter Bulan -->
             <div class="flex justify-between items-center mb-3">
                 <h3 class="font-bold text-gray-700 flex items-center text-sm" id="title-summary">
                     <i class="fa-solid fa-chart-pie text-blue-500 mr-2"></i>Summary
@@ -63,7 +60,6 @@
             </div>
             
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <!-- Widget Iuran Ceklis (Bisa Diklik) -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition transform active:scale-95 flex flex-col justify-between" onclick="showUnpaidModal()">
                     <div>
                         <div class="flex justify-between items-start mb-2">
@@ -81,7 +77,6 @@
                     </div>
                 </div>
 
-                <!-- Widget Pengeluaran (Bisa Diklik) -->
                 <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-red-500 cursor-pointer hover:bg-gray-50 transition transform active:scale-95 flex flex-col justify-between" onclick="showPengeluaranModal()">
                     <div>
                         <div class="flex justify-between items-start mb-2">
@@ -96,23 +91,17 @@
                 </div>
             </div>
 
-            <!-- Rekap Iuran Tahunan -->
             <div class="flex justify-between items-center mb-3">
                 <h3 class="font-bold text-gray-700 flex items-center text-sm"><i class="fa-solid fa-calendar-days text-blue-500 mr-2"></i>Rekap Iuran</h3>
-                <select id="dash-input-tahun" class="border border-gray-300 rounded-lg p-1 text-xs font-bold text-gray-600 outline-none focus:border-blue-500 bg-white shadow-sm" onchange="renderRekapTahunan()">
-                    <!-- Options injected by JS -->
-                </select>
+                <select id="dash-input-tahun" class="border border-gray-300 rounded-lg p-1 text-xs font-bold text-gray-600 outline-none focus:border-blue-500 bg-white shadow-sm" onchange="renderRekapTahunan()"></select>
             </div>
             
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
                 <div class="grid grid-cols-2 gap-2">
-                    <!-- Kolom Kiri (Jan-Jun) -->
                     <div id="rekap-kiri" class="space-y-2"></div>
-                    <!-- Kolom Kanan (Jul-Dec) -->
                     <div id="rekap-kanan" class="space-y-2"></div>
                 </div>
             </div>
-
         </div>
 
         <!-- ================= VIEW: IURAN BULANAN ================= -->
@@ -134,10 +123,7 @@
                 <h3 class="font-bold text-gray-700"><i class="fa-solid fa-clipboard-check text-blue-500 mr-1"></i> Ceklis Iuran (Rp 20.000)</h3>
                 <span id="iuran-counter" class="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-1 rounded-full">0/0 Lunas</span>
             </div>
-            
-            <div id="list-iuran" class="space-y-2">
-                <!-- List Karyawan disini -->
-            </div>
+            <div id="list-iuran" class="space-y-2"></div>
         </div>
 
         <!-- ================= VIEW: KAS LAINNYA ================= -->
@@ -169,12 +155,9 @@
                         <label class="block text-sm text-gray-600 mb-1 font-medium">Nominal (Rp)</label>
                         <input type="number" id="nominal" placeholder="50000" required class="w-full border-2 border-gray-200 rounded-lg p-2 focus:border-blue-500 outline-none">
                     </div>
-                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all shadow-md">
-                        Simpan Transaksi
-                    </button>
+                    <button type="submit" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-all shadow-md">Simpan Transaksi</button>
                 </form>
             </div>
-
             <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-clock-rotate-left text-blue-500 mr-1"></i> Riwayat Kas</h3>
             <div id="list-transaksi" class="space-y-3"></div>
         </div>
@@ -188,11 +171,9 @@
                     <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700">Tambah</button>
                 </form>
             </div>
-            
             <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-users text-blue-500 mr-1"></i> Daftar Anggota (Aktif)</h3>
             <div id="list-anggota" class="space-y-2"></div>
         </div>
-
     </main>
 
     <!-- Modal Status Belum Lunas -->
@@ -207,12 +188,10 @@
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
-            
             <div class="flex border-b text-sm font-semibold">
                 <button id="tab-belum" onclick="switchModalTab('belum')" class="flex-1 py-3 text-red-600 border-b-2 border-red-600 text-center transition-colors">Belum Lunas (<span id="count-belum">0</span>)</button>
                 <button id="tab-lunas" onclick="switchModalTab('lunas')" class="flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors">Sudah Lunas (<span id="count-lunas">0</span>)</button>
             </div>
-
             <div class="p-4 overflow-y-auto bg-gray-50" id="list-modal-content"></div>
         </div>
     </div>
@@ -274,7 +253,6 @@
         </div>
     </nav>
 
-    <!-- Script src dengan cache buster dinamis -->
     <script>
         document.write('<script src="config.js?v=' + new Date().getTime() + '"><\/script>');
         document.write('<script src="app.js?v=' + new Date().getTime() + '"><\/script>');

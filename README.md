@@ -1,6 +1,5 @@
-# Update v12: Table Zoom & Custom Icon
+# Update v13: Compact Table & Custom Logo
 
 Fitur Terbaru:
-1. **Zoom Diizinkan:** Halaman `share.html` sekarang bisa di-zoom in dan zoom out di HP untuk visibilitas tabel yang lebih baik.
-2. **Baris TOTAL:** Pada tabel share, ditambahkan baris TOTAL yang akan otomatis menghitung total uang yang terkumpul di setiap bulan/kolomnya.
-3. **Custom Icon:** Icon PWA di-*replace* menggunakan gambar logo khusus.
+1. **Compact Shared Table:** Halaman `share.html` sekarang dirender dengan font dan padding yang lebih kecil. Awalan "Rp" pada tabel sengaja dihilangkan agar nominal lebih muat, dan kolom nama dibatasi ukurannya. 
+2. **Custom App Logo:** Logo aplikasi sudah diupdate sesuai dengan yang dilampirkan.

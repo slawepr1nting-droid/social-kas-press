@@ -57,12 +57,10 @@ function isTargetMember(member, monthStr) {
     return true; 
 }
 
-// Default Inits
 document.getElementById('tanggal').valueAsDate = new Date();
 document.getElementById('input-bulan-iuran').value = getCurrentMonth();
 document.getElementById('dash-input-bulan').value = getCurrentMonth();
 
-// Generate Options untuk Tahun di Dashboard
 const selectTahunDash = document.getElementById('dash-input-tahun');
 const cYear = getCurrentYear();
 for(let y = cYear - 1; y <= cYear + 1; y++) {
