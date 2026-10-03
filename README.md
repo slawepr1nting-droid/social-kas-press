@@ -1,8 +1,7 @@
-# Update v7: Auto-Update (Tanpa Hard Refresh)
+# Update v8: Final Polishing
 
-Sistem PWA telah diubah pendekatannya agar sangat ramah bagi developer / pengguna yang sering melakukan update file via GitHub:
-1. **HTML Anti-Cache Meta Tags**: File HTML sekarang dipaksa untuk selalu mengambil versi terbaru dari server.
-2. **Dynamic Script Loading**: File `app.js` dan `config.js` dipanggil dengan parameter waktu dinamis (`?v=...`), sehingga browser tidak akan pernah menguncinya di memori lama.
-3. **PWA Auto-Reload**: Jika ada update file, Service Worker baru akan mendeteksinya, menginstal dirinya secara senyap, lalu melakukan *auto-reload* 1x untuk menerapkan desain terbaru.
-
-**Anda hanya tinggal *Pull-to-refresh* / memuat ulang halaman secara biasa (tidak perlu clear cache lagi)!**
+1. **Dashboard Update:** Widget Kas Masuk Lain diganti menjadi **Total Pengeluaran** sesuai bulan yang dipilih.
+2. **Perbaikan Tab Iuran:**
+   - Filter bulan otomatis berjalan (onchange) ketika bulan diubah.
+   - Pengecekan `created_at` dihilangkan, sehingga 2 anggota yang "hilang" di bulan September akan muncul kembali dan bisa diceklis.
+   - Penambahan tombol **Tambah Anggota Cepat** langsung di dalam Tab Iuran untuk mempercepat pendataan.
