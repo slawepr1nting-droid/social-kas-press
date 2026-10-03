@@ -11,11 +11,12 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Sembunyikan elemen dengan class .hidden-view */
         .hidden-view { display: none !important; }
-        /* Transisi halus */
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Hide scrollbar for compact list */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans pb-20">
@@ -46,33 +47,47 @@
                 </div>
             </div>
 
-            <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-chart-pie text-blue-500 mr-2"></i>Summary Bulan Ini (<span id="dash-month-name"></span>)</h3>
+            <h3 class="font-bold text-gray-700 mb-3 flex items-center justify-between">
+                <div><i class="fa-solid fa-chart-pie text-blue-500 mr-2"></i>Summary (<span id="dash-month-name"></span>)</div>
+            </h3>
+            
             <div class="grid grid-cols-2 gap-3 mb-6">
-                
                 <!-- Widget Iuran Ceklis (Bisa Diklik) -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition transform active:scale-95" onclick="showUnpaidModal()">
-                    <div class="flex justify-between items-start mb-2">
-                        <div class="text-xs text-gray-500">Iuran Terkumpul</div>
-                        <div class="bg-green-100 text-green-600 w-6 h-6 rounded flex items-center justify-center text-xs"><i class="fa-solid fa-list-check"></i></div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-green-500 cursor-pointer hover:bg-gray-50 transition transform active:scale-95 flex flex-col justify-between" onclick="showUnpaidModal()">
+                    <div>
+                        <div class="flex justify-between items-start mb-2">
+                            <div class="text-xs text-gray-500">Iuran Terkumpul</div>
+                            <div class="bg-green-100 text-green-600 w-6 h-6 rounded flex items-center justify-center text-xs"><i class="fa-solid fa-list-check"></i></div>
+                        </div>
+                        <div class="font-bold text-green-600 text-lg mb-2" id="dash-iuran-terkumpul">Rp 0</div>
                     </div>
-                    <div class="font-bold text-green-600 text-lg mb-2" id="dash-iuran-terkumpul">Rp 0</div>
-                    <div class="flex justify-between items-center pt-2 border-t border-gray-100">
-                        <div class="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded" id="dash-lunas-count">0 Lunas</div>
-                        <div class="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded" id="dash-belum-lunas-count">0 Belum</div>
+                    <div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                            <div class="text-[11px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded" id="dash-lunas-count">0 Lunas</div>
+                            <div class="text-[11px] font-bold text-red-500 bg-red-50 px-2 py-1 rounded" id="dash-belum-lunas-count">0 Belum</div>
+                        </div>
+                        <div class="text-[9px] text-gray-400 mt-2 text-center italic"><i class="fa-regular fa-hand-pointer mr-1"></i>Klik untuk detail</div>
                     </div>
-                    <div class="text-[9px] text-gray-400 mt-2 text-center italic"><i class="fa-regular fa-hand-pointer mr-1"></i>Klik untuk detail</div>
                 </div>
 
                 <!-- Widget Kas Bebas -->
-                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500">
+                <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-blue-500 flex flex-col">
                     <div class="flex justify-between items-start mb-2">
                         <div class="text-xs text-gray-500">Kas Masuk Lain</div>
                         <div class="bg-blue-100 text-blue-600 w-6 h-6 rounded flex items-center justify-center text-xs"><i class="fa-solid fa-money-bill-transfer"></i></div>
                     </div>
                     <div class="font-bold text-blue-600 text-lg" id="dash-kas-masuk">Rp 0</div>
                 </div>
-
             </div>
+
+            <!-- Rekap Iuran Tahunan -->
+            <h3 class="font-bold text-gray-700 mb-3"><i class="fa-solid fa-calendar-days text-blue-500 mr-2"></i>Rekap Iuran <span id="dash-current-year"></span></h3>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div id="rekap-tahunan-list" class="max-h-80 overflow-y-auto no-scrollbar divide-y divide-gray-100">
+                    <div class="text-center text-gray-400 py-6 text-sm animate-pulse">Memuat rekap tahunan...</div>
+                </div>
+            </div>
+
         </div>
 
         <!-- ================= VIEW: IURAN BULANAN ================= -->
@@ -153,27 +168,22 @@
     <!-- Modal Status Belum Lunas -->
     <div id="modal-belum-lunas" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 fade-in backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] flex flex-col overflow-hidden">
-            <!-- Header Modal -->
-            <div class="bg-red-50 p-4 border-b border-red-100 flex justify-between items-center">
+            <div class="bg-blue-50 p-4 border-b border-blue-100 flex justify-between items-center">
                 <div>
-                    <h3 class="font-bold text-red-700"><i class="fa-solid fa-user-clock mr-2"></i>Status Iuran</h3>
-                    <div class="text-xs text-red-500 mt-1" id="modal-subtitle">Bulan Ini</div>
+                    <h3 class="font-bold text-blue-700"><i class="fa-solid fa-user-clock mr-2"></i>Status Iuran</h3>
+                    <div class="text-xs text-blue-500 mt-1" id="modal-subtitle">Bulan Ini</div>
                 </div>
-                <button onclick="closeUnpaidModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition-colors">
+                <button onclick="closeUnpaidModal()" class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
             
-            <!-- Tab Modal -->
             <div class="flex border-b text-sm font-semibold">
                 <button id="tab-belum" onclick="switchModalTab('belum')" class="flex-1 py-3 text-red-600 border-b-2 border-red-600 text-center transition-colors">Belum Lunas (<span id="count-belum">0</span>)</button>
                 <button id="tab-lunas" onclick="switchModalTab('lunas')" class="flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors">Sudah Lunas (<span id="count-lunas">0</span>)</button>
             </div>
 
-            <!-- Konten Modal -->
-            <div class="p-4 overflow-y-auto bg-gray-50" id="list-modal-content">
-                <!-- Data di-inject via JS -->
-            </div>
+            <div class="p-4 overflow-y-auto bg-gray-50" id="list-modal-content"></div>
         </div>
     </div>
 

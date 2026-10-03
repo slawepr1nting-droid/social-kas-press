@@ -7,29 +7,22 @@ if ('serviceWorker' in navigator) {
 const supabaseClient = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
 const NOMINAL_IURAN = 20000;
 
-// Variabel Global untuk Modal Dashboard
 let dashboardUnpaidMembers = [];
 let dashboardPaidMembers = [];
 
-// Utilities
 const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 const getCurrentMonth = () => {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 };
 
-// Set default dates
 document.getElementById('tanggal').valueAsDate = new Date();
 document.getElementById('input-bulan-iuran').value = getCurrentMonth();
 
-// 3. Navigation System
 function switchTab(tabId) {
-    // Hide all views
     document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden-view'));
-    // Show active view
     document.getElementById(`view-${tabId}`).classList.remove('hidden-view');
     
-    // Update active nav button
     document.querySelectorAll('.nav-btn').forEach(btn => {
         if(btn.dataset.target === tabId) {
             btn.classList.remove('text-gray-400');
@@ -40,7 +33,6 @@ function switchTab(tabId) {
         }
     });
 
-    // Load data based on tab
     if(tabId === 'dashboard') loadDashboard();
     if(tabId === 'iuran') loadIuran();
     if(tabId === 'transaksi') loadTransaksi();
@@ -50,44 +42,44 @@ function switchTab(tabId) {
 // ================= FUNGSI DASHBOARD =================
 async function loadDashboard() {
     try {
-        // Fetch All Iuran
-        const { data: iuranData } = await supabaseClient.select('nominal').from('iuran_bulanan');
+        const currentMonth = getCurrentMonth();
+        const currentYear = new Date().getFullYear();
+        document.getElementById('dash-current-year').innerText = currentYear;
+
+        // Ambil Data Karyawan (Total Anggota)
+        const { data: allMembers, count: anggotaCount } = await supabaseClient.from('karyawan').select('*', { count: 'exact' }).order('nama');
+        const totalAnggota = anggotaCount || 0;
+
+        // Ambil Seluruh Data Iuran
+        const { data: iuranData } = await supabaseClient.from('iuran_bulanan').select('*');
         const totalIuran = (iuranData || []).reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
 
-        // Fetch All Kas
-        const { data: kasData } = await supabaseClient.select('*').from('kas_sosial');
+        // Ambil Seluruh Data Kas
+        const { data: kasData } = await supabaseClient.from('kas_sosial').select('*');
+        
         let totalKasMasuk = 0;
         let totalKasKeluar = 0;
-        
-        const currentMonth = getCurrentMonth();
-        let iuranBulanIni = 0;
         let kasMasukBulanIni = 0;
 
         (kasData || []).forEach(k => {
             const nom = parseFloat(k.nominal);
             if(k.jenis === 'masuk') totalKasMasuk += nom;
             else totalKasKeluar += nom;
-
             if(k.jenis === 'masuk' && k.tanggal.startsWith(currentMonth)) kasMasukBulanIni += nom;
         });
 
-        // ------------------ LOGIC STATUS LUNAS / BELUM ------------------
-        // 1. Ambil seluruh anggota
-        const { data: allMembers } = await supabaseClient.from('karyawan').select('*').order('nama');
-        // 2. Ambil data iuran khusus bulan ini
-        const { data: iuranBulanIniData } = await supabaseClient.from('iuran_bulanan').select('karyawan_id, nominal').eq('bulan_tahun', currentMonth);
+        // Hitung Data Khusus Bulan Berjalan (Untuk Widget Atas)
+        const iuranBulanIniData = (iuranData || []).filter(i => i.bulan_tahun === currentMonth);
+        const iuranBulanIniTotal = iuranBulanIniData.reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
         
-        // 3. Pisahkan anggota yang lunas dan belum
-        iuranBulanIni = (iuranBulanIniData || []).reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
-        const paidMemberIds = new Set((iuranBulanIniData || []).map(i => i.karyawan_id));
-        
+        const paidMemberIds = new Set(iuranBulanIniData.map(i => i.karyawan_id));
         dashboardPaidMembers = (allMembers || []).filter(m => paidMemberIds.has(m.id));
         dashboardUnpaidMembers = (allMembers || []).filter(m => !paidMemberIds.has(m.id));
         
         const lunasCount = dashboardPaidMembers.length;
         const belumLunasCount = dashboardUnpaidMembers.length;
-        // -----------------------------------------------------------------
         
+        // Update Kartu Total
         const totalMasukKeseluruhan = totalIuran + totalKasMasuk;
         const totalSaldo = totalMasukKeseluruhan - totalKasKeluar;
 
@@ -96,16 +88,63 @@ async function loadDashboard() {
         document.getElementById('dash-total-keluar').innerText = formatRp(totalKasKeluar);
         
         document.getElementById('dash-month-name').innerText = currentMonth;
-        document.getElementById('dash-iuran-terkumpul').innerText = formatRp(iuranBulanIni);
+        document.getElementById('dash-iuran-terkumpul').innerText = formatRp(iuranBulanIniTotal);
         document.getElementById('dash-kas-masuk').innerText = formatRp(kasMasukBulanIni);
         
-        // Update widget detail status
         document.getElementById('dash-lunas-count').innerText = `${lunasCount} Lunas`;
         document.getElementById('dash-belum-lunas-count').innerText = `${belumLunasCount} Belum`;
         
-        // Update Modal Counter
         document.getElementById('count-belum').innerText = belumLunasCount;
         document.getElementById('count-lunas').innerText = lunasCount;
+
+        // ------------------ RENDER REKAP TAHUNAN ------------------
+        const rekapListEl = document.getElementById('rekap-tahunan-list');
+        rekapListEl.innerHTML = '';
+        
+        const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const currentMonthNum = new Date().getMonth() + 1;
+
+        for (let m = 1; m <= 12; m++) {
+            const blnString = String(m).padStart(2, '0');
+            const blnKey = `${currentYear}-${blnString}`;
+            
+            const dataBulanIni = (iuranData || []).filter(i => i.bulan_tahun === blnKey);
+            const nominalBulanIni = dataBulanIni.reduce((acc, curr) => acc + parseFloat(curr.nominal), 0);
+            const bulanPaidCount = new Set(dataBulanIni.map(i => i.karyawan_id)).size;
+            
+            const isFuture = m > currentMonthNum;
+            const isLunas = totalAnggota > 0 && bulanPaidCount >= totalAnggota;
+            
+            let statusBadge = '';
+            
+            if (isFuture) {
+                statusBadge = `<span class="text-[10px] font-medium bg-gray-100 text-gray-400 px-2 py-1 rounded">--</span>`;
+            } else if (isLunas) {
+                statusBadge = `<span class="text-[10px] font-bold bg-green-100 text-green-700 px-2 py-1 rounded"><i class="fa-solid fa-check mr-1"></i>Lunas</span>`;
+            } else {
+                statusBadge = `<span class="text-[10px] font-bold bg-red-100 text-red-600 px-2 py-1 rounded">Belum Lunas</span>`;
+            }
+
+            const opacityClass = isFuture ? 'opacity-40 bg-gray-50' : 'bg-white';
+            const singkatanBulan = namaBulan[m-1].substring(0, 3);
+            
+            const rowHtml = `
+            <div class="p-3 flex items-center justify-between ${opacityClass}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded bg-blue-50 text-blue-600 flex flex-col items-center justify-center border border-blue-100">
+                        <span class="text-[12px] font-bold uppercase leading-none">${singkatanBulan}</span>
+                    </div>
+                    <div>
+                        <div class="font-bold text-gray-700 text-sm">${formatRp(nominalBulanIni)}</div>
+                        <div class="text-[11px] text-gray-500 font-medium tracking-tight mt-0.5">${bulanPaidCount}/${totalAnggota} Anggota</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    ${statusBadge}
+                </div>
+            </div>`;
+            rekapListEl.innerHTML += rowHtml;
+        }
 
     } catch(e) {
         console.error(e);
@@ -115,7 +154,7 @@ async function loadDashboard() {
 // ================= FUNGSI MODAL STATUS =================
 function showUnpaidModal() {
     document.getElementById('modal-subtitle').innerText = 'Bulan: ' + getCurrentMonth();
-    switchModalTab('belum'); // Default tab "Belum Lunas"
+    switchModalTab('belum'); 
     document.getElementById('modal-belum-lunas').classList.remove('hidden');
 }
 
@@ -130,7 +169,6 @@ function switchModalTab(tabType) {
     listEl.innerHTML = '';
 
     if (tabType === 'belum') {
-        // Styling Tab Aktif
         btnBelum.className = "flex-1 py-3 text-red-600 border-b-2 border-red-600 text-center transition-colors";
         btnLunas.className = "flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors";
         
@@ -146,7 +184,6 @@ function switchModalTab(tabType) {
             });
         }
     } else {
-        // Styling Tab Aktif
         btnLunas.className = "flex-1 py-3 text-green-600 border-b-2 border-green-600 text-center transition-colors";
         btnBelum.className = "flex-1 py-3 text-gray-400 border-b-2 border-transparent hover:text-gray-600 text-center transition-colors";
 
@@ -223,7 +260,6 @@ async function loadIuran() {
 async function toggleIuran(karyawan_id, bulan_tahun, checkboxEl) {
     const isChecked = checkboxEl.checked;
     checkboxEl.disabled = true; 
-    
     try {
         if(isChecked) {
             await supabaseClient.from('iuran_bulanan').insert([{ karyawan_id, bulan_tahun, nominal: NOMINAL_IURAN }]);
@@ -243,7 +279,6 @@ async function toggleIuran(karyawan_id, bulan_tahun, checkboxEl) {
 async function loadAnggota() {
     const listEl = document.getElementById('list-anggota');
     listEl.innerHTML = '<div class="text-center py-4">Memuat...</div>';
-    
     const { data, error } = await supabaseClient.from('karyawan').select('*').order('nama');
     listEl.innerHTML = '';
     
@@ -287,7 +322,6 @@ async function hapusAnggota(id) {
 async function loadTransaksi() {
     const listEl = document.getElementById('list-transaksi');
     listEl.innerHTML = '...';
-    
     const { data, error } = await supabaseClient.from('kas_sosial').select('*').order('tanggal', { ascending: false });
     listEl.innerHTML = '';
     
@@ -297,7 +331,6 @@ async function loadTransaksi() {
             const icon = isMasuk ? 'fa-arrow-trend-up text-green-500' : 'fa-arrow-trend-down text-red-500';
             const sign = isMasuk ? '+' : '-';
             const color = isMasuk ? 'text-green-600' : 'text-red-600';
-
             listEl.innerHTML += `
             <div class="bg-white p-3 rounded-xl shadow-sm flex justify-between items-center border-l-4 ${isMasuk ? 'border-green-500' : 'border-red-500'}">
                 <div class="flex items-center gap-3">
@@ -320,7 +353,6 @@ document.getElementById('form-kas').addEventListener('submit', async (e) => {
     const tanggal = document.getElementById('tanggal').value;
     const keterangan = document.getElementById('keterangan').value;
     const nominal = document.getElementById('nominal').value;
-
     try {
         await supabaseClient.from('kas_sosial').insert([{ jenis, tanggal, keterangan, nominal }]);
         e.target.reset();
