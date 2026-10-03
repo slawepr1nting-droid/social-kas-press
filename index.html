@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Kas Dept. Press</title>
+    <!-- ANTI CACHE META TAGS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
+    <title>Kas Dept. Press (v7)</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -214,7 +219,10 @@
         </div>
     </nav>
 
-    <script src="config.js"></script>
-    <script src="app.js"></script>
+    <!-- Script src dengan cache buster dinamis -->
+    <script>
+        document.write('<script src="config.js?v=' + new Date().getTime() + '"><\/script>');
+        document.write('<script src="app.js?v=' + new Date().getTime() + '"><\/script>');
+    </script>
 </body>
 </html>
